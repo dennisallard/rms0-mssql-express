@@ -1,0 +1,5 @@
+node_modules
+.env
+NOTES.txt
+package-lock.json-HOLD
+package.json-HOLD

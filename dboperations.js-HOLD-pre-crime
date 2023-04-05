@@ -1,0 +1,123 @@
+var config = require('./config')
+const sql = require('mssql')
+const LIMIT = 10
+
+console.log('DEBUG: config = ' + JSON.stringify(config))
+
+async function getCustomers(){
+    try{
+        let pool = await sql.connect(config)
+        let customers = await pool.request().query("SELECT TOP(" + LIMIT + ") * FROM Customers WHERE CustomerId < 4")
+        console.log('DEBUG: return from getCustomers() customers.recordsets = ' +
+                     JSON.stringify(customers.recordsets,null,4));
+        return customers.recordsets
+    } 
+    catch (error) {
+        console.log(error)
+    }
+}
+
+/* */
+async function getCustomersStream(req, res){
+    sql.connect(config, function (err) {
+        // ... error checks
+        // parse URL arguments
+        console.log("req.params = " + JSON.stringify(req.params,null,4));
+        console.log("req.query = " + JSON.stringify(req.query,null,4));
+
+        var request = new sql.Request();
+        request.stream = true; // You can set streaming differently for each request
+        request.query('SELECT * FROM Customers WHERE CustomerId > 4 AND CustomerId < 8'); // or request.execute(procedure);
+
+        var rowCounter = 0;
+        const BATCH_SIZE = 3;
+
+        request.on('recordset', function(columns) {
+            // Emitted once for each recordset in a query
+            console.log('DEBUG: recordset columns = ' + JSON.stringify(columns,null,4));
+            res.setHeader('Content-Type', 'application/json');
+            res.write('[');
+        });
+
+        request.on('row', function(row) {
+            // Emitted for each row in a recordset
+            console.log('DEBUG: row = ' + JSON.stringify(row,null,4));
+            if (rowCounter > 0) {
+                res.write(',');
+            }
+            if (rowCounter % BATCH_SIZE == 0) {
+                console.log('flushing at rowCounter = ' + rowCounter);
+                ////res.flush();
+            }
+            res.write(JSON.stringify(row));
+            rowCounter++;
+        });
+
+        request.on('error', function(err) {
+            // May be emitted multiple times
+            console.log('DEBUG: error = ' + JSON.stringify(err,null,4));
+            res.write(JSON.stringify(err));
+        });
+
+        request.on('done', function(returnValue) {
+            // Always emitted as the last one
+            console.log('DEBUG: done returnValue = ' + JSON.stringify(returnValue,null,4));
+            res.write(']');
+            sql.close();
+            res.end();
+        });
+    });
+
+
+
+    try{
+        let pool = await sql.connect(config)
+        let customers = await pool.request().query("SELECT TOP(" + LIMIT + ") * FROM Customers")
+        return customers.recordsets
+    } 
+    catch (error) {
+        console.log(error)
+    }
+}
+/* */
+
+async function getCustomer(custId){
+    try{
+        let pool = await sql.connect(config)
+        let customer = await pool.request()
+        .input('input_parm', sql.Int, custId)
+        .query("SELECT * FROM Customers WHERE CustomerId = @input_parm");
+        ////console.log('RETURN ' + JSON.stringify(customer.recordsets,null,4))
+        return customer.recordsets
+    } 
+    catch (error) {
+        console.log(error)
+    }
+}
+
+async function addCustomer(customer) {
+    try{
+        console.log('DEBUG addCustomer called on customer = ' + JSON.stringify(customer))
+        let pool = await sql.connect(config)
+        let resultMaybe = await pool.request()
+        .input('CustomerId', sql.Int, customer.CustomerId)
+        .input('Name', sql.NVarChar, customer.Name)
+        .input('Location', sql.NVarChar, customer.Location)
+        .input('Email', sql.NVarChar, customer.Email)
+        .query("INSERT INTO Customers (CustomerId,Name,Location,Email) VALUES (@CustomerId,@Name,@Location,@Email)");
+        ////console.log('RETURN ' + JSON.stringify(customer.recordsets,null,4))
+        ////return resultMaybe
+        return JSON.stringify(customer)
+    }
+    catch (error) {
+        console.log(error)
+    }
+
+}
+
+module.exports = {
+    getCustomers : getCustomers,
+    getCustomersStream : getCustomersStream,
+    getCustomer : getCustomer,
+    addCustomer : addCustomer
+}

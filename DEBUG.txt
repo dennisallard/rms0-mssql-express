@@ -1,0 +1,22 @@
+DEBUG: return from getCustomers() customers.recordsets = [
+    [
+        {
+            "CustomerId": 1,
+            "Name": "Orlando",
+            "Location": "Australia",
+            "Email": ""
+        },
+        {
+            "CustomerId": 2,
+            "Name": "Keith",
+            "Location": "India",
+            "Email": "keith0@adventure-works.com"
+        },
+        {
+            "CustomerId": 3,
+            "Name": "Donna",
+            "Location": "Germany",
+            "Email": "donna0@adventure-works.com"
+        }
+    ]
+]
