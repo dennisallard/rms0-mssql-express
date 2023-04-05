@@ -32,9 +32,9 @@ async function getCrimesStream(req, res){
             if (req.query.geo)  {
                 console.log('req.query.geo = ' + req.query.geo)
                 whereClause ? whereClause += ' AND ' : whereClause += ' '
-                lat = req.query.geo[0]
-                lon = req.query.geo[1]
-                distance = req.query.geo[2]
+                var lat = req.query.geo[0]
+                var lon = req.query.geo[1]
+                var distance = req.query.geo[2]
                 console.log('DEBUG: lat = ' + lat + ', lon = ' + lon + ', distance = ' + distance)
                 //whereClause += 'AND SQRT(POWER(LAT - '+lat+', 2) + POWER(LON - '+lon+', 2)) < ' + distance
                 whereClause += 'ACOS(SIN(LAT)*SIN('+lat+')+COS(LAT)*COS('+lat+')*COS('+lon+'-LON))*6371 < ' + distance
