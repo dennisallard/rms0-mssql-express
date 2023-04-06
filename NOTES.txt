@@ -1,5 +1,5 @@
 (2023-04-05
-Implemented crimes/ endpoint with url args location, daterange, get
+Implemented crimes/ endpoint with url args location, daterange, geo
 
 Able to test via curl using python to avoid having to urlencode the  url:
 

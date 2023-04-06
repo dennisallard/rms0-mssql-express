@@ -22,6 +22,6 @@ router.route('/crimes').get((req, res) => {
 
 var apiport = process.env.API_PORT || 3000
 app.listen(apiport)
-console.log('Customer Express API is listening on port ' + apiport)
+console.log('RMS Express API is listening on port ' + apiport)
 
 console.log('=================================================')

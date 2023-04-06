@@ -14,35 +14,58 @@ async function getCrimesStream(req, res){
         var request = new sql.Request();
         request.stream = true; // You can set streaming differently for each request
 
-        var whereClause = '';
-        if (req.query.dr) {
-            console.log('req.query.dr = ' + req.query.dr)
-            whereClause = 'DR_NO = PARSE(\'' + req.query.dr + '\' AS TIME)'
-        } else {
-            if (req.query.daterange) {
-                console.log('req.query.daterange = ' + req.query.daterange)
-                whereClause ? whereClause += ' AND ' : whereClause += ' '
-                whereClause += ' Date_Rptd >= \'' + req.query.daterange[0] + '\' AND Date_Rptd <= \'' + req.query.daterange[1] + '\''
+        try {
+            var whereClause = '';
+            if (req.query.dr) {
+                console.log('req.query.dr = ' + req.query.dr)
+                whereClause = 'DR_NO = PARSE(\'' + req.query.dr + '\' AS TIME)'
+            } else {
+                if (req.query.daterange) {
+                    const daterange = req.query.daterange
+                    console.log('req.query.daterange = ' + daterange)
+                    if (daterange.length !== 2) {
+                        console.log('ERROR: daterange must be an array of length 2')
+                        throw ('ERROR: daterange must be an array of length 2')
+                    }
+                    whereClause ? whereClause += ' AND ' : whereClause += ' '
+                    //whereClause += ' Date_Rptd >= \'' + req.query.daterange[0] + '\' AND Date_Rptd <= \'' + req.query.daterange[1] + '\''
+                    whereClause += ' ( (Date_Rptd >= \'' + daterange[0] + '\' AND Date_Rptd <= \'' + daterange[1] + '\')' +
+                        ' OR (Date_Rptd >= \'' + daterange[0] + '\' AND Date_Rptd <= \'' + daterange[1] + '\') )'
+                }
+                if (req.query.location) {
+                    console.log('req.query.location = ' + req.query.location)
+                    whereClause ? whereClause += ' AND ' : whereClause += ' '
+                    whereClause += ' (LOCATION LIKE \'%' + req.query.location + '%\'' +
+                        ' OR AREA_NAME LIKE \'%' + req.query.location + '%\'' +
+                        ' OR CROSS_STREET LIKE \'%' + req.query.location + '%\' )'
+                }
+                if (req.query.geo) {
+                    const geo = req.query.geo
+                    console.log('req.query.geo = ' + geo)
+                    if (geo.length !== 3) {
+                        console.log('ERROR: geo must be an array of length 3')
+                        throw ('ERROR: geo must be an array of length 3')
+                    }
+                    whereClause ? whereClause += ' AND ' : whereClause += ' '
+                    var lat = geo[0]
+                    var lon = geo[1]
+                    var distance = geo[2]
+                    console.log('DEBUG: lat = ' + lat + ', lon = ' + lon + ', distance = ' + distance)
+                    //whereClause += 'AND SQRT(POWER(LAT - '+lat+', 2) + POWER(LON - '+lon+', 2)) < ' + distance
+                    whereClause += 'ACOS(SIN(LAT)*SIN(' + lat + ')+COS(LAT)*COS(' + lat + ')*COS(' + lon + '-LON))*6371 < ' + distance
+                }
             }
-            if (req.query.location)  {
-                console.log('req.query.location = ' + req.query.location)
-                whereClause ? whereClause += ' AND ' : whereClause += ' '
-                whereClause += ' LOCATION LIKE \'%' + req.query.location + '%\''
-            }
-            if (req.query.geo)  {
-                console.log('req.query.geo = ' + req.query.geo)
-                whereClause ? whereClause += ' AND ' : whereClause += ' '
-                var lat = req.query.geo[0]
-                var lon = req.query.geo[1]
-                var distance = req.query.geo[2]
-                console.log('DEBUG: lat = ' + lat + ', lon = ' + lon + ', distance = ' + distance)
-                //whereClause += 'AND SQRT(POWER(LAT - '+lat+', 2) + POWER(LON - '+lon+', 2)) < ' + distance
-                whereClause += 'ACOS(SIN(LAT)*SIN('+lat+')+COS(LAT)*COS('+lat+')*COS('+lon+'-LON))*6371 < ' + distance
-            }
+            console.log('DEBUG: whereClause = ' + whereClause)
         }
-        console.log('DEBUG: whereClause = ' + whereClause)
+        catch (err) {
+            console.log(err.toString)
+            res.write(err.toString())
+            res.end();
+            return;
+        }
 
-        var sqlstmt = 'SELECT DR_NO, Date_Rptd, LOCATION, LAT, LON FROM Crime_Data_from_2020_to_Present Crimes ';
+
+        var sqlstmt = 'SELECT DR_NO, Date_Rptd, DATE_OCC, LOCATION, AREA_NAME, Cross_Street, LAT, LON FROM Crime_Data_from_2020_to_Present Crimes ';
         if (whereClause) {
             sqlstmt += 'WHERE ' + whereClause
         }
