@@ -1,4 +1,3 @@
-var Customer = require('./customer');
 const dboperations = require('./dboperations');
 
 var express = require('express');
