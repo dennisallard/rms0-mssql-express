@@ -51,6 +51,8 @@ Build the express app in the standard node way:
 
     npm install
 
+Copy top level file .env-SAMPLE to .env and edit .env to set the SQL_PASSWORD (I indicated the password offlline from here).
+
 Run the express app via:
 
     npm start api.js
