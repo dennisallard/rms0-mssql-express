@@ -5,14 +5,20 @@ const LIMIT = 10
 console.log('DEBUG: config = ' + JSON.stringify(config))
 
 async function getCrimesStream(req, res){
-    sql.connect(config, function (err) {
-        // ... error checks
-        // parse URL arguments
-        console.log("req.params = " + JSON.stringify(req.params,null,4));
-        console.log("req.query = " + JSON.stringify(req.query,null,4));
+    console.log('DEBUG: getCrimesStream()')
 
-        var request = new sql.Request();
-        request.stream = true; // You can set streaming differently for each request
+    sql.connect(config, function(err) {
+        if (err) {
+            console.log(err)
+            res.write('{ "error" : "' + err.toString() + '" }')
+            sql.close()
+            res.end()
+            return
+        }
+
+        // parse URL arguments and build where clause
+        console.log("req.params = " + JSON.stringify(req.params,null,4))
+        console.log("req.query = " + JSON.stringify(req.query,null,4))
 
         try {
             var whereClause = '';
@@ -56,32 +62,34 @@ async function getCrimesStream(req, res){
                 }
             }
             console.log('DEBUG: whereClause = ' + whereClause)
+            ////throw('ERROR: test error')
         }
         catch (err) {
-            console.log(err.toString)
-            res.write(err.toString())
+            console.log(err)
+            res.write('{ "error" : "' + err + '" }')
+            sql.close();
             res.end();
             return;
         }
 
-
+        // build SQL statement and evaluate it
         var sqlstmt = 'SELECT DR_NO, Date_Rptd, DATE_OCC, LOCATION, AREA_NAME, Cross_Street, LAT, LON FROM Crime_Data_from_2020_to_Present Crimes ';
         if (whereClause) {
             sqlstmt += 'WHERE ' + whereClause
         }
-
         console.log('DEBUG: sqlstmt = ' + sqlstmt)
-        request.query(sqlstmt)
 
+        var request = new sql.Request();
+        request.stream = true; // You can set streaming differently for each request
+
+        request.query(sqlstmt)
         var rowCounter = 0;
-        const BATCH_SIZE = 100;
 
         request.on('recordset', function(columns) {
             // Emitted once for each recordset in a query
             // console.log('DEBUG: recordset columns = ' + JSON.stringify(columns,null,4));
             res.setHeader('Content-Type', 'application/json');
             res.write('{ "crimes": [');
-            ////res.write('[');
         });
 
         request.on('row', function(row) {
@@ -93,23 +101,22 @@ async function getCrimesStream(req, res){
             if (rowCounter > 0) {
                 res.write(',');
             }
-            //// if (rowCounter % BATCH_SIZE == 0) {
-            ////     console.log('flushing at rowCounter = ' + rowCounter);
-            ////     ////res.flush();
-            //// }
             res.write(JSON.stringify(row));
             ++rowCounter;
         });
 
         request.on('error', function(err) {
             // May be emitted multiple times
-            console.log('DEBUG: error = ' + JSON.stringify(err,null,4));
-            res.write(JSON.stringify(err));
+            console.log('DEBUG: error = ' + JSON.stringify(err, null, 4));
+            res.write('{ "error" : "' + err.toString() + '" }')
+            sql.close();
+            res.end();
+            return;
         });
 
         request.on('done', function(returnValue) {
             // Always emitted as the last one
-            console.log('DEBUG: done returnValue = ' + JSON.stringify(returnValue,null,4));
+            console.log('DEBUG: done returnValue = ' + JSON.stringify(returnValue, null, 4));
             res.write('], "count": ' + rowCounter + '} ');
             sql.close();
             res.end();
