@@ -25,7 +25,7 @@ You need to have a Docker Engine running on your computer.  Windows 10/11 have a
 
 Once you have the above image running, you can connect to it from MS SQL Server Management Studio (SSMS).
 
-After you install and dockder run the above container on your localhost, you may admin the database using SSMS. Install SSMS then login to it using the following login inputs:
+After you install and docker run the above container on your localhost, you may admin the database using SSMS. Install SSMS then login to it using the following login inputs:
 
     Server type: Database Engine
     Server name: localhost
@@ -65,4 +65,8 @@ Example query:
 ```
 http://localhost:3002/api/crimes/?location=PACIFIC%20COAST&geo=33.7905&geo=-118.2750&geo=0.5&daterange=2020-02-03&daterange=2020-02-06
 ```
+
+
+References:
+https://tediousjs.github.io/node-mssql/
 
