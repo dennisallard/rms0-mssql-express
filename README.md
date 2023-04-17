@@ -60,13 +60,25 @@ Run the express app via:
 
 Once the app is running you should be able to fetch from the api endpoint illustrated below.
 
-Example query:
+Example queries:
+
+```
+http://localhost:3002/api/crimes/?dr=1970-01-01T20:06:04.061Z
+```
+
+    Returns a few columns from the record in the Crimes dataset having a given DR
 
 ```
 http://localhost:3002/api/crimes/?location=PACIFIC%20COAST&geo=33.7905&geo=-118.2750&geo=0.5&daterange=2020-02-03&daterange=2020-02-06
 ```
 
+    Returns all records in the Crimes dataset having partial match with "PACIFIC COAST", within 0.5 Kilometers of the specified lat long, and within the date range.
+
+
 
 References:
+
+https://learn.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver16
+
 https://tediousjs.github.io/node-mssql/
 
