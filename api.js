@@ -21,7 +21,17 @@ router.route('/crimes').get((req, res) => {
 })
 
 var apiport = process.env.API_PORT || 3000
-app.listen(apiport)
-console.log('RMS Express API is listening on port ' + apiport)
-
+////app.listen(apiport)
 console.log('=================================================')
+try {
+    app.listen(apiport).on('error', (err) => {  // listen on the port
+        console.log('ERROR: ' + err)
+        console.log('=================================================')
+        console.log('Exiting...')
+    })
+    console.log('RMS Express API is listening on port ' + apiport)
+} catch (err) {
+    console.log('ERROR: ' + err)
+    console.log('=================================================')
+    console.log('Exiting...')
+}
