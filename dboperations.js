@@ -36,7 +36,7 @@ async function getCrimesStream(req, res){
                     whereClause ? whereClause += ' AND ' : whereClause += ' '
                     //whereClause += ' Date_Rptd >= \'' + req.query.daterange[0] + '\' AND Date_Rptd <= \'' + req.query.daterange[1] + '\''
                     whereClause += ' ( (Date_Rptd >= \'' + daterange[0] + '\' AND Date_Rptd <= \'' + daterange[1] + '\')' +
-                        ' OR (Date_Rptd >= \'' + daterange[0] + '\' AND Date_Rptd <= \'' + daterange[1] + '\') )'
+                                   ' OR (DATE_OCC >= \'' + daterange[0] + '\' AND DATE_OCC <= \'' + daterange[1] + '\') )'
                 }
                 if (req.query.location) {
                     console.log('req.query.location = ' + req.query.location)
