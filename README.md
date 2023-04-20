@@ -55,7 +55,7 @@ Copy top level file .env-SAMPLE to .env and edit .env to set the SQL_PASSWORD (I
 
 Run the express app via:
 
-    npm start api.js
+    npm run start
 
 
 Once the app is running you should be able to fetch from the api endpoint illustrated below.
