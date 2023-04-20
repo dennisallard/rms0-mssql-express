@@ -94,7 +94,7 @@ async function getCrimesStream(req, res){
 
         request.on('row', function(row) {
             // Emitted for each row in a recordset
-            if (rowCounter % 250 == 0) {
+            if (rowCounter % 100000 == 0) {
                 //console.log('DEBUG: a row = ' + JSON.stringify(row,null,4));
                 console.log('DEBUG: a row = ' + JSON.stringify(row));
             }
