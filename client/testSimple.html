@@ -1,6 +1,4 @@
 <!--
-Plan:
-    revamp to use async fetch per https://rapidapi.com/guides/fetch-api-async-await
 -->
 
 <!DOCTYPE html>
@@ -12,28 +10,43 @@ Plan:
 </head>
 
 <body>
-  api input:
-  <!--  <input type="text" id="inputarg"> -->
-  <textarea id="inputarg" name="graphql parameter" rows="10" cols="80" style="display: block" value=""></textarea>
+  RMS Express API port:
+  <input type="text" id="port" value="3002">
   <br>
-  api output:
-  <textarea id="output" name="graphql response" rows="15" cols="80" style="display: block" value=""></textarea>
+  <br>
+  API input:
+  <!--  <input type="text" id="inputarg"> -->
+  <textarea id="inputarg" name="API input" rows="10" cols="80" style="display: block" value=""></textarea>
+  <br>
+  API output:
+  <textarea id="output" name="API output" rows="15" cols="80" style="display: block" value=""></textarea>
   <br>
   <button onclick="processInput();">process input</button>
 
 <script>
 function processInput() {
     console.log('DEBUG: processInput() ...')
+
+    var port = $('#port').val().trim();
+    if (!/^\d+\.?\d*$/.test(port)){
+      window.alert('ERROR: port "' + port + '" is not a number')
+      return
+    }
+    port = parseInt(port)
+    if (port < 3000 || port > 65535) {
+      window.alert('ERROR: port is not in range 3000-65535')
+      return
+    }
+
     var inputarg = $('#inputarg').val();
     inputarg = inputarg.trim()
     ////const method = inputarg.startsWith('mutation') ? 'POST' : 'GET'
     const method = 'GET'
-    ////console.log('DEBUG: method = ' + method)
-    ////var url = "http://localhost:3001/graph?qlquery=" + inputarg
     console.log('inputarg = ' + inputarg)
-    var url = "http://localhost:3001/api/" + inputarg
+    var url = "http://localhost:" + port + "/api/" + inputarg
     var result = "nada";
     console.log('DEBUG: JUST BEFORE fetch url = ' + url)
+    
     fetch(url, {method: method, headers: {"referrerPolicy": "unsafe-url", "mode": "cors"}})
         .then(response => response.json())
         .then(data => {

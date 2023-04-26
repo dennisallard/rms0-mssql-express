@@ -1,0 +1,125 @@
+<!--
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+</head>
+
+<body>
+  RMS Express API port:
+  <input type="text" id="port" value="3002">
+  <br>
+  <br>
+  API input:
+  <!--  <input type="text" id="inputarg"> -->
+  <textarea id="inputarg" name="API input" rows="10" cols="80" style="display: block" value=""></textarea>
+  <br>
+  API output:
+  <textarea id="output" name="API output" rows="15" cols="80" style="display: block" value=""></textarea>
+  <br>
+  <button onclick="processInput();">process input</button>
+  <button id="abortButton">Abort</button>
+
+<script>
+
+function processInput() {
+    console.log('DEBUG: processInput() ...')
+
+    var port = $('#port').val().trim();
+    if (!/^\d+\.?\d*$/.test(port)){
+      window.alert('ERROR: port "' + port + '" is not a number')
+      return
+    }
+    port = parseInt(port)
+    if (port < 3000 || port > 65535) {
+      window.alert('ERROR: port is not in range 3000-65535')
+      return
+    }
+
+    var inputarg = $('#inputarg').val();
+    inputarg = inputarg.trim()
+    ////const method = inputarg.startsWith('mutation') ? 'POST' : 'GET'
+    const method = 'GET'
+    console.log('inputarg = ' + inputarg)
+    var url = "http://localhost:" + port + "/api/" + inputarg
+    var result = "nada";
+    console.log('DEBUG: JUST BEFORE fetch url = ' + url)
+
+    //// BEGIN per: https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_streams
+    let bytes = 0;
+
+    var chunkString = '';
+    var chunkCount = 0;
+    var subChunk = new Array(10)
+
+    const aborter = new AbortController();
+    const abortButton = document.getElementById("abortButton");
+    abortButton.addEventListener("click", () => {
+      chunkString = 'ABORTED BY USER'
+      aborter.abort()
+    })
+    logChunks(url, { signal: aborter.signal });
+
+    async function logChunks(url, { signal }) {
+      try {
+        const response =
+          await fetch(url, {
+            method: method,
+            signal: signal,
+            headers: {"referrerPolicy": "unsafe-url", "mode": "cors"}
+          });
+        for await  (const chunk of response.body) {
+          if (signal.aborted) throw signal.reason;
+          bytes += chunk.length;
+          console.log(`Chunk: ${chunk}. Read ${bytes} characters.`);
+          ////chunkString += String.fromCharCode(...chunk)  -- crashes on large chunks having 100,000s of elements
+          var i = 0;
+          while (i < chunk.length) {
+            j = 0
+            while (j < 10) {
+              if (i+j < chunk.length) {
+                  subChunk[j] = chunk[i+j]
+              } else {
+                  subChunk[j] = 32
+              }
+              ++j
+            }
+            ////console.log('subChunk = ' + subChunk)
+            chunkString += String.fromCharCode(...subChunk)
+            i += 10
+          }
+          ++chunkCount
+        }
+      } catch (e) {
+        if (e instanceof TypeError) {
+          console.log(e);
+          console.log("TypeError: Browser may not support async iteration");
+          $('#output').val($('#output').val() + JSON.stringify(e))
+        } else {
+          console.log(`Error in async iterator: ${e}.`);
+          $('#output').val($('#output').val() + JSON.stringify(e))
+        }
+      }
+      $('#output').val(chunkCount + ' chunks === ' + chunkString)
+    }
+    //// END per: https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_streams
+  }
+
+/*
+http://localhost:3002/api/
+
+crimes/?daterange=2020-02-03&daterange=2020-03-03
+126 chunks 19257 records
+
+crimes/?location=fig&geo=33.7905&geo=-118.2750&geo=50&daterange=2020-02-03&daterange=2020-03-03
+2 chunks 3 records
+*/
+
+</script>
+</body>
+</html>
+    
