@@ -20,6 +20,12 @@ router.route('/crimes').get((req, res) => {
     dboperations.getCrimesStream(req, res)
 })
 
+router.route('*').get((req, res) => {
+    console.log('DEBUG: req.url = ' + req.url)
+    res.write('{ "error" : "Invalid URL, only endpoint supported is: crimes/?[arg=...[&arg=...]...]" }')
+    res.end()
+})
+
 var apiport = process.env.API_PORT || 3000
 ////app.listen(apiport)
 console.log('=================================================')
