@@ -21,6 +21,15 @@ You can run the container on a Docker engine via this command:
 docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=RMS0foobar" -p 1433:1433 -d dennisallard/ssms:version05-rms0
 ```
 
+HISTORICAL NOTE:
+I derived my above container starting with:
+```
+docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=********" -p 1433:1433 -d mcr.microsoft.com/mssql/server:2022-latest
+```
+ALSO See:
+https://hub.docker.com/_/microsoft-mssql-server
+
+
 You need to have a Docker Engine running on your computer.  Windows 10/11 have a built-in Docker Engine that you start by running the Docker Desktop app.  (Wait about 20 seconds for it to kick in and then do commands such as  the above docker run command and things like docker images, docker ps, etc.
 
 Once you have the above image running, you can connect to it from MS SQL Server Management Studio (SSMS).
@@ -63,7 +72,7 @@ Once the app is running you should be able to fetch from the api endpoint illust
 Example queries:
 
 ```
-http://localhost:3002/api/crimes/?dr=1970-01-01T20:06:04.061Z
+http://localhost:3002/api/d
 ```
 
     Returns a few columns from the record in the Crimes dataset having a given DR
@@ -76,9 +85,27 @@ http://localhost:3002/api/crimes/?location=PACIFIC%20COAST&geo=33.7905&geo=-118.
 
 
 
+There are two HTML files you can use as file URLs to enter queries.  The URLs are of the form:
+
+file:///C:/<PATH TO THIS REPO>/client/testSimple.html
+file:///C:/<PATH TO THIS REPO>/client/testChunks.html
+
+testSimple.html does a simple fetch and pretty prints the returns JSON.
+testChunks.html reads the response stream in chunks and provides an abort controller.
+
+The javascript in the HTML files is pretty easy to understand and references are cited.
+
+
 References:
 
 https://learn.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver16
 
 https://tediousjs.github.io/node-mssql/
 
+
+testChunks.html derived some code from the "Example async reader" section per:
+https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_streams
+
+
+Well written overview of fetch API:
+https://rapidapi.com/guides/fetch-api-async-await

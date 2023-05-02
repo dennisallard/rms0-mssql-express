@@ -41,7 +41,7 @@ async function getCrimesStream(req, res){
                 if (req.query.location) {
                     console.log('req.query.location = ' + req.query.location)
                     whereClause ? whereClause += ' AND ' : whereClause += ' '
-                    whereClause += ' (LOCATION LIKE \'%' + req.query.location + '%\'' +
+                    whereClause += ' (replace(LOCATION,\' \',\'\') LIKE \'%' + req.query.location.replace(/\s+/g, '') + '%\'' +
                         ' OR AREA_NAME LIKE \'%' + req.query.location + '%\'' +
                         ' OR CROSS_STREET LIKE \'%' + req.query.location + '%\' )'
                 }
