@@ -90,8 +90,18 @@ There are two HTML files you can use as file URLs to enter queries.  The URLs ar
 file:///C:/<PATH TO THIS REPO>/client/testSimple.html
 file:///C:/<PATH TO THIS REPO>/client/testChunks.html
 
-testSimple.html does a simple fetch and pretty prints the returns JSON.
+For both in the API input you enter an endpoint string that begins with "crimes/".
+
+Examples:
+
+crimes/?location=PACIFIC COAST&daterange=2020-02-03&daterange=2020-02-06
+
+crimes/?geo=34.0483016967773&geo=-118.26309967041&geo=0.05&daterange=2020-01-02&daterange=2020-01-02
+
+testSimple.html does a simple fetch and pretty prints the returned JSON.
 testChunks.html reads the response stream in chunks and provides an abort controller.
+
+Both output some useful information in the browser's inspector console output.
 
 The javascript in the HTML files is pretty easy to understand and references are cited.
 
