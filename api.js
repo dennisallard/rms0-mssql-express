@@ -22,7 +22,7 @@ router.route('/crimes').get((req, res) => {
 
 router.route('*').get((req, res) => {
     console.log('DEBUG: req.url = ' + req.url)
-    res.write('{ "error" : "Invalid URL, only endpoint supported is: crimes/?[arg=...[&arg=...]...]" }')
+    res.write('{ "error" : "Invalid URL, only endpoint supported by /api/ is: crimes/?[arg=...[&arg=...]...]" }')
     res.end()
 })
 

@@ -30,11 +30,10 @@ async function getCrimesStream(req, res){
                     const daterange = req.query.daterange
                     console.log('req.query.daterange = ' + daterange)
                     if (daterange.length !== 2) {
-                        console.log('ERROR: daterange must be an array of length 2')
-                        throw ('ERROR: daterange must be an array of length 2')
+                        console.log('ERROR: there must be 2 daterange args')
+                        throw ('ERROR: there must be 2 daterange args')
                     }
                     whereClause ? whereClause += ' AND ' : whereClause += ' '
-                    //whereClause += ' Date_Rptd >= \'' + req.query.daterange[0] + '\' AND Date_Rptd <= \'' + req.query.daterange[1] + '\''
                     whereClause += ' ( (Date_Rptd >= \'' + daterange[0] + '\' AND Date_Rptd <= \'' + daterange[1] + '\')' +
                                    ' OR (DATE_OCC >= \'' + daterange[0] + '\' AND DATE_OCC <= \'' + daterange[1] + '\') )'
                 }
@@ -42,22 +41,21 @@ async function getCrimesStream(req, res){
                     console.log('req.query.location = ' + req.query.location)
                     whereClause ? whereClause += ' AND ' : whereClause += ' '
                     whereClause += ' (replace(LOCATION,\' \',\'\') LIKE \'%' + req.query.location.replace(/\s+/g, '') + '%\'' +
-                        ' OR AREA_NAME LIKE \'%' + req.query.location + '%\'' +
-                        ' OR CROSS_STREET LIKE \'%' + req.query.location + '%\' )'
+                        ' OR replace(AREA_NAME,\' \',\'\') LIKE \'%' + req.query.location.replace(/\s+/g, '') + '%\'' +
+                        ' OR replace(CROSS_STREET,\' \',\'\') LIKE \'%' + req.query.location.replace(/\s+/g, '') + '%\' )'
                 }
                 if (req.query.geo) {
                     const geo = req.query.geo
                     console.log('req.query.geo = ' + geo)
                     if (geo.length !== 3) {
-                        console.log('ERROR: geo must be an array of length 3')
-                        throw ('ERROR: geo must be an array of length 3')
+                        console.log('ERROR: there must be 3 geo args')
+                        throw ('geo args')
                     }
                     whereClause ? whereClause += ' AND ' : whereClause += ' '
                     var lat = geo[0]
                     var lon = geo[1]
                     var distance = geo[2]
                     console.log('DEBUG: lat = ' + lat + ', lon = ' + lon + ', distance = ' + distance)
-                    //whereClause += 'AND SQRT(POWER(LAT - '+lat+', 2) + POWER(LON - '+lon+', 2)) < ' + distance
                     whereClause += 'ACOS(SIN(LAT)*SIN(' + lat + ')+COS(LAT)*COS(' + lat + ')*COS(' + lon + '-LON))*6371 < ' + distance
                 }
             }
