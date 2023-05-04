@@ -1,0 +1,48 @@
+(2023-05-04
+I noticed that with my current abortController usage in client/testChunks.html the client side javascript aborts fine but the app server continues to stream output row data to the response stream.  Somehow aborting the fetch is NOT causing the http connection to close, i.e., the server continues to write to the response stream.  Weird.
+
+Locally I saved my futile attemps to "cancel" the response if my
+uncomitted file:
+
+client/testChunks.html-HOLD-failed-cancel-response-on-server.
+
+
+I asked ChatGPT about this:
+
+Me:
+I am doing a fetch using an abort controller.  When I abort the fetch
+my abort controller cancels the response but the server continues to
+stream data to the response.  How do I inform the server that the
+response is cancelled.
+
+
+ChatGPT:
+
+When you abort a fetch request using an AbortController, the fetch()
+method will signal to the server that the request has been aborted by
+closing the network connection. This should cause the server to stop
+sending data to the response, assuming it is implemented correctly.
+
+However, there are some situations where the server may not
+immediately stop sending data, especially if the response is being
+streamed over a long-lived connection. In this case, you can use a
+mechanism called server-sent events (SSE) to detect when the client
+has disconnected and stop sending data to the response.
+
+With SSE, the server sends a stream of events to the client over a
+long-lived HTTP connection. The client can abort the connection by
+closing the connection or by sending a special "close" event to the
+server. When the server receives the "close" event, it can stop
+sending data to the response.
+
+To use SSE with your fetch request, you would need to modify the
+server-side code to support SSE and send events to the client instead
+of a continuous stream of data. You can then use the EventSource API
+on the client-side to listen for SSE events and respond appropriately,
+including sending a "close" event when the AbortController cancels the
+request.
+
+Note that not all servers support SSE out of the box, and it may
+require additional configuration or libraries to implement.
+
+)
