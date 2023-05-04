@@ -1,11 +1,15 @@
 (2023-05-04
-I noticed that with my current abortController usage in client/testChunks.html the client side javascript aborts fine but the app server continues to stream output row data to the response stream.  Somehow aborting the fetch is NOT causing the http connection to close, i.e., the server continues to write to the response stream.  Weird.
 
-Locally I saved my futile attemps to "cancel" the response if my
-uncomitted file:
+I noticed that with my current abortController usage in
+client/testChunks.html the client side javascript aborts fine but the
+app server continues to stream output row data to the response stream.
+Somehow aborting the fetch is NOT causing the http connection to
+close, i.e., the server continues to write to the response stream.
+Weird.
 
-client/testChunks.html-HOLD-failed-cancel-response-on-server.
-
+I saved my attemps to "cancel" the response in my uncomitted file:
+client/testChunks.html-HOLD-failed-to-cancel-response. This file
+is not commited to the repo, I just have it locally.
 
 I asked ChatGPT about this:
 
