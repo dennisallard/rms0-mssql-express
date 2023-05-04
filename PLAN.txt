@@ -49,4 +49,9 @@ request.
 Note that not all servers support SSE out of the box, and it may
 require additional configuration or libraries to implement.
 
+
+Me:
+After a bit of research I found a simple example of SSE:
+https://javascript.plainenglish.io/server-sent-events-with-nodejs-bbdc9a9584cb
+
 )
