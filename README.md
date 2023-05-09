@@ -61,7 +61,11 @@ Build the express app in the standard node way:
 
     npm install
 
-Copy top level file .env-SAMPLE to .env and edit .env to set the SQL_PASSWORD (I indicated the password offlline from here).
+You need to create a top level file
+
+    .env
+
+Copy file .env-SAMPLE to .env and edit .env to set the SQL_PASSWORD (I indicated the password offlline from here).
 
 Run the express app via:
 
@@ -86,12 +90,15 @@ http://localhost:3002/api/crimes/?location=PACIFIC%20COAST&geo=33.7905&geo=-118.
 
 
 
-There are two HTML files you can use as file URLs to enter queries.  The URLs are of the form:
+There are three HTML files you can use as file URLs to enter queries.  The URLs are of the form:
 
 file:///C:/<PATH TO THIS REPO>/client/testSimple.html
 file:///C:/<PATH TO THIS REPO>/client/testChunks.html
+file:///C:/<PATH TO THIS REPO>/client/testScrikk.html
 
-For both in the API input you enter an endpoint string that begins with "crimes/".
+The  javascript code in each of these files serves as a simple example of how to use javascript fetch() to make API calls to the server.
+
+They all provide an API input field for you to enter an endpoint string that begins with "crimes/?".
 
 Examples:
 
@@ -100,9 +107,12 @@ crimes/?location=PACIFIC COAST&daterange=2020-02-03&daterange=2020-02-06
 crimes/?geo=34.0483016967773&geo=-118.26309967041&geo=0.05&daterange=2020-01-02&daterange=2020-01-02
 
 testSimple.html does a simple fetch and pretty prints the returned JSON.
+
 testChunks.html reads the response stream in chunks and provides an abort controller.
 
-Both output some useful information in the browser's inspector console output.
+testScroll.html provides provides pagination via URL args rownum and size.
+
+All of them output some useful information in the browser's inspector console output.
 
 The javascript in the HTML files is pretty easy to understand and references are cited.
 

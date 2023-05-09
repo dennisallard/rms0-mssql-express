@@ -1,0 +1,106 @@
+<!--
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+</head>
+
+<body>
+  RMS Express API port:
+  <input type="text" id="port" value="3002" placeholder="API port">
+  <br> <br>
+  Next row to fetch:
+  <input type="text" id="rownum" value="1" size=10>
+  Number of rows to fetch:
+  <input type="text" id="size" value="5" size=2>
+  then bump row
+  <select id="direction">
+    <option value="forward" selected>Forward</option>
+    <option value="backward">Backward</option>
+  </select>
+  <br>
+  <br>
+  <button onclick="processInput();">Fetch rows</button>
+  <br>
+  <br>
+  API input (of form crimes/?...):
+  <textarea id="inputarg" name="API input" rows="2" cols="256" style="display: block" value=""></textarea>
+  <br>
+  URL fetched:
+  <textarea id="fetchedURL" name="fetchedURL" rows="1" cols="256" style="display: block" value=""></textarea>
+  <br>
+  API output:
+  <textarea id="output" name="API output" rows="12" cols="256" style="display: block" value=""></textarea>
+  <br>
+ 
+<script>
+
+// Get references to the dropdown menu and input fields
+const direction = document.querySelector('#direction');
+const rownum = document.querySelector('#rownum');
+const size = document.querySelector('#size');
+
+
+function processInput() {
+    console.log('DEBUG: processInput() ...')
+
+    var port = $('#port').val().trim();
+    if (!/^\d+\.?\d*$/.test(port)){
+      window.alert('ERROR: port "' + port + '" is not a number')
+      return
+    }
+    port = parseInt(port)
+    if (port < 3000 || port > 65535) {
+      window.alert('ERROR: port is not in range 3000-65535')
+      return
+    }
+
+    var inputarg = $('#inputarg').val();
+    inputarg = inputarg.trim()
+    
+    const method = 'GET'
+    console.log('inputarg = ' + inputarg)
+    var url = "http://localhost:" + port + "/api/" + inputarg
+            + '&size=' + $('#size').val() + '&rownum=' + $('#rownum').val()
+    var result = "nada";
+    console.log('DEBUG: JUST BEFORE fetch url = ' + url)
+
+    $('#fetchedURL').val(url)
+    
+    fetch(url, {method: method, headers: {"referrerPolicy": "unsafe-url", "mode": "cors"}})
+        .then(response => response.json())
+        .then(data => {
+          result = data
+          console.log("result = " + JSON.stringify(result))
+          })
+        .then(() => {
+          if (result.errors) {
+            console.log('ERROR: fetch failed ' + JSON.stringify(result.errors, undefined, 2))
+            $('#output').val(JSON.stringify(result.errors, undefined, 2))
+          } else {
+            console.log('about to output '+JSON.stringify(result))
+            ////$('#output').val(JSON.stringify(result.data, undefined, 2))
+            ////$('#output').val(JSON.stringify(result))
+            $('#output').val(JSON.stringify(result, undefined, 2))
+            
+            if ($('#direction').val() === 'forward') {
+                ////$('#rownum').val(result.rownum + result.size)
+                $('#rownum').val(parseInt($('#rownum').val()) + parseInt($('#size').val()))
+            } else {
+                $('#rownum').val(parseInt($('#rownum').val()) - parseInt($('#size').val()))
+            }    
+          }
+        })
+        .catch(error => {
+          console.log('ERROR: fetch failed ' + error)
+          $('#output').val(error)
+        })
+}
+</script>
+</body>
+</html>
+    

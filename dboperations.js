@@ -1,9 +1,12 @@
 var config = require('./config')
 const sql = require('mssql')
-const LIMIT = 10
 
 console.log('DEBUG: config = ' + JSON.stringify(config))
 
+function isPositiveInteger(value) {
+    return Number.isInteger(value) && Math.sign(value) === 1;
+  }
+  
 async function getCrimesStream(req, res){
     console.log('DEBUG: getCrimesStream()')
 
@@ -20,8 +23,31 @@ async function getCrimesStream(req, res){
         console.log("req.params = " + JSON.stringify(req.params,null,4))
         console.log("req.query = " + JSON.stringify(req.query,null,4))
 
+        var whereClause = '';
+
+        var rownum = req.query.rownum || null;      // optional starting row number
+        var size = req.query.size || null;          // optional number of rows to return
+        
         try {
-            var whereClause = '';
+            var whereClause = ''
+
+            if (! isPositiveInteger(parseInt(rownum))) {
+                throw('ERROR: rownum must be a positive integer');    
+            } 
+            if (! isPositiveInteger(parseInt(size))) {
+                throw('ERROR: size must be a positive integer');
+            }
+
+            if (size) {
+                // return size number of rows [ordered by DR_NO for now] either ascending or descending starting at rownum
+                console.log('return ' + size + ' rows')
+                rownum = rownum || 1
+                console.log('starting at row: ' + rownum)              
+            } else {
+                // if size is not specified, then return all rows
+                console.log('return all rows')
+            }
+
             if (req.query.dr) {
                 console.log('req.query.dr = ' + req.query.dr)
                 whereClause = 'DR_NO = PARSE(\'' + req.query.dr + '\' AS TIME)'
@@ -71,9 +97,16 @@ async function getCrimesStream(req, res){
         }
 
         // build SQL statement and evaluate it
-        var sqlstmt = 'SELECT DR_NO, Date_Rptd, DATE_OCC, LOCATION, AREA_NAME, Cross_Street, LAT, LON FROM Crime_Data_from_2020_to_Present Crimes ';
+        ////var sqlstmt = 'SELECT DR_NO, Date_Rptd, DATE_OCC, LOCATION, AREA_NAME, Cross_Street, LAT, LON FROM Crime_Data_from_2020_to_Present Crimes ';
+        var sqlstmt = 'SELECT ROW_NUMBER() OVER (ORDER BY DR_NO) row_num,' +
+                             'DR_NO, Date_Rptd, DATE_OCC, LOCATION, AREA_NAME, Cross_Street, LAT, LON FROM Crime_Data_from_2020_to_Present Crimes ';
         if (whereClause) {
             sqlstmt += 'WHERE ' + whereClause
+        }
+        if (size) {
+            sqlstmt = 'SELECT TOP ' + size + ' * FROM (' + sqlstmt + ') AS anon ' +
+            /////'WHERE row_num ' + (order == 'asc' ? '>=' : '<=') + rownum + ' ORDER BY row_num ' + order
+            'WHERE row_num >= ' + rownum + ' ORDER BY row_num '
         }
         console.log('DEBUG: sqlstmt = ' + sqlstmt)
 
@@ -87,7 +120,9 @@ async function getCrimesStream(req, res){
             // Emitted once for each recordset in a query
             // console.log('DEBUG: recordset columns = ' + JSON.stringify(columns,null,4));
             res.setHeader('Content-Type', 'application/json');
-            res.write('{ "crimes": [');
+            /////res.write('{ "crimes": [');
+            /////res.write('{ "rownum": ' + rownum + ', "size": ' + size + ', "order": "' + order + '", "crimes": [');
+            res.write('{ "rownum": ' + rownum + ', "size": ' + size + ', "crimes": [');
         });
 
         request.on('row', function(row) {
