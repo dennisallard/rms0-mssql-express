@@ -20,37 +20,34 @@ async function getCrimesStream(req, res){
         }
 
         // parse URL arguments and build where clause
-        console.log("req.params = " + JSON.stringify(req.params,null,4))
-        console.log("req.query = " + JSON.stringify(req.query,null,4))
-
-        var whereClause = '';
-
-        var rownum = req.query.rownum || null;      // optional starting row number
-        var size = req.query.size || null;          // optional number of rows to return
-        
         try {
-            var whereClause = ''
+            console.log("req.params = " + JSON.stringify(req.params,null,4))
+            console.log("req.query = " + JSON.stringify(req.query,null,4))
+        
+            var rownum = req.query.rownum || 1;      // optional starting row number, default to 1
+            var size = req.query.size || null;       // optional number of rows to return
+          
+            var whereClause = '1=1'  // below we add optional where clauses each starting with ' AND'
 
             if (! isPositiveInteger(parseInt(rownum))) {
-                throw('ERROR: rownum must be a positive integer');    
+                throw('ERROR: rownum must be a positive integer');
             } 
-            if (! isPositiveInteger(parseInt(size))) {
-                throw('ERROR: size must be a positive integer');
-            }
 
             if (size) {
-                // return size number of rows [ordered by DR_NO for now] either ascending or descending starting at rownum
+                // return size number of rows [ordered by DR_NO for now] starting at rownum
+                if (! isPositiveInteger(parseInt(size))) {
+                    throw('ERROR: size must be a positive integer');
+                }
                 console.log('return ' + size + ' rows')
-                rownum = rownum || 1
                 console.log('starting at row: ' + rownum)              
             } else {
                 // if size is not specified, then return all rows
-                console.log('return all rows')
+                console.log('return all rows starting at row: ' + rownum)
             }
 
             if (req.query.dr) {
                 console.log('req.query.dr = ' + req.query.dr)
-                whereClause = 'DR_NO = PARSE(\'' + req.query.dr + '\' AS TIME)'
+                whereClause += ' AND DR_NO = PARSE(\'' + req.query.dr + '\' AS TIME)'
             } else {
                 if (req.query.daterange) {
                     const daterange = req.query.daterange
@@ -59,14 +56,12 @@ async function getCrimesStream(req, res){
                         console.log('ERROR: there must be 2 daterange args')
                         throw ('ERROR: there must be 2 daterange args')
                     }
-                    whereClause ? whereClause += ' AND ' : whereClause += ' '
-                    whereClause += ' ( (Date_Rptd >= \'' + daterange[0] + '\' AND Date_Rptd <= \'' + daterange[1] + '\')' +
-                                   ' OR (DATE_OCC >= \'' + daterange[0] + '\' AND DATE_OCC <= \'' + daterange[1] + '\') )'
+                    whereClause += ' AND ( (Date_Rptd >= \'' + daterange[0] + '\' AND Date_Rptd <= \'' + daterange[1] + '\') OR ' +
+                                          '(DATE_OCC >= \'' + daterange[0] + '\' AND DATE_OCC <= \'' + daterange[1] + '\') )'
                 }
                 if (req.query.location) {
                     console.log('req.query.location = ' + req.query.location)
-                    whereClause ? whereClause += ' AND ' : whereClause += ' '
-                    whereClause += ' (replace(LOCATION,\' \',\'\') LIKE \'%' + req.query.location.replace(/\s+/g, '') + '%\'' +
+                    whereClause += ' AND (replace(LOCATION,\' \',\'\') LIKE \'%' + req.query.location.replace(/\s+/g, '') + '%\'' +
                         ' OR replace(AREA_NAME,\' \',\'\') LIKE \'%' + req.query.location.replace(/\s+/g, '') + '%\'' +
                         ' OR replace(CROSS_STREET,\' \',\'\') LIKE \'%' + req.query.location.replace(/\s+/g, '') + '%\' )'
                 }
@@ -77,12 +72,11 @@ async function getCrimesStream(req, res){
                         console.log('ERROR: there must be 3 geo args')
                         throw ('geo args')
                     }
-                    whereClause ? whereClause += ' AND ' : whereClause += ' '
                     var lat = geo[0]
                     var lon = geo[1]
                     var distance = geo[2]
                     console.log('DEBUG: lat = ' + lat + ', lon = ' + lon + ', distance = ' + distance)
-                    whereClause += 'ACOS(SIN(LAT)*SIN(' + lat + ')+COS(LAT)*COS(' + lat + ')*COS(' + lon + '-LON))*6371 < ' + distance
+                    whereClause += ' AND ACOS(SIN(LAT)*SIN(' + lat + ')+COS(LAT)*COS(' + lat + ')*COS(' + lon + '-LON))*6371 < ' + distance
                 }
             }
             console.log('DEBUG: whereClause = ' + whereClause)
@@ -97,17 +91,12 @@ async function getCrimesStream(req, res){
         }
 
         // build SQL statement and evaluate it
-        ////var sqlstmt = 'SELECT DR_NO, Date_Rptd, DATE_OCC, LOCATION, AREA_NAME, Cross_Street, LAT, LON FROM Crime_Data_from_2020_to_Present Crimes ';
         var sqlstmt = 'SELECT ROW_NUMBER() OVER (ORDER BY DR_NO) row_num,' +
-                             'DR_NO, Date_Rptd, DATE_OCC, LOCATION, AREA_NAME, Cross_Street, LAT, LON FROM Crime_Data_from_2020_to_Present Crimes ';
-        if (whereClause) {
-            sqlstmt += 'WHERE ' + whereClause
-        }
-        if (size) {
-            sqlstmt = 'SELECT TOP ' + size + ' * FROM (' + sqlstmt + ') AS anon ' +
-            /////'WHERE row_num ' + (order == 'asc' ? '>=' : '<=') + rownum + ' ORDER BY row_num ' + order
-            'WHERE row_num >= ' + rownum + ' ORDER BY row_num '
-        }
+                             'DR_NO, Date_Rptd, DATE_OCC, LOCATION, AREA_NAME, Cross_Street, LAT, LON FROM Crime_Data_from_2020_to_Present Crimes ' +
+                      'WHERE ' + whereClause
+
+        sqlstmt = 'SELECT' + (size ? ' TOP ' + size : '') + ' * FROM (' + sqlstmt + ') AS anon WHERE row_num >= ' + rownum + ' ORDER BY row_num'
+
         console.log('DEBUG: sqlstmt = ' + sqlstmt)
 
         var request = new sql.Request();
@@ -117,18 +106,21 @@ async function getCrimesStream(req, res){
         var rowCounter = 0;
 
         request.on('recordset', function(columns) {
-            // Emitted once for each recordset in a query
+            // Emitted once for each recordset in a query - for us that means once since we only have one SELECT in our query
             // console.log('DEBUG: recordset columns = ' + JSON.stringify(columns,null,4));
+            console.log('DEBUG: number of columns in result set = ' + Object.keys(columns).length);
             res.setHeader('Content-Type', 'application/json');
-            /////res.write('{ "crimes": [');
-            /////res.write('{ "rownum": ' + rownum + ', "size": ' + size + ', "order": "' + order + '", "crimes": [');
-            res.write('{ "rownum": ' + rownum + ', "size": ' + size + ', "crimes": [');
+            if (!size) {
+                res.write('{ "crimes": [');
+            } else {
+                res.write('{ "rownum": ' + rownum + ', "size": ' + size + ', "crimes": [');
+            }
         });
 
         request.on('row', function(row) {
             // Emitted for each row in a recordset
             if (rowCounter % 100000 == 0) {
-                //console.log('DEBUG: a row = ' + JSON.stringify(row,null,4));
+                //For debugging purposes, output the first row and every 100000th row after that
                 console.log('DEBUG: a row = ' + JSON.stringify(row));
             }
             if (rowCounter > 0) {
@@ -139,7 +131,7 @@ async function getCrimesStream(req, res){
         });
 
         request.on('error', function(err) {
-            // May be emitted multiple times
+            // May be multiple errors but we will bail after the first one
             console.log('DEBUG: error = ' + JSON.stringify(err, null, 4));
             res.write('{ "error" : "' + err.toString() + '" }')
             sql.close();

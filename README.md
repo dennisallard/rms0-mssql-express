@@ -1,4 +1,4 @@
-This is a demo node app that provides a simple express api to SELECT data from tables in a version of SQL Server I run in a container.  The container image consists of a recent Ubuntu Linux with SQL Server pre-installed.  The tables are from datasets found here:
+This is a demo node app, hereby dubbed rms0, that provides a simple express api to SELECT data from tables in an SQL Server database currently installed in a container.  The container image consists of a recent Ubuntu Linux with SQL Server pre-installed by Microsoft.  The tables are from datasets found here:
 
 
 Home page: https://data.lacity.org/browse?category=Public+Safety
@@ -12,20 +12,25 @@ https://data.lacity.org/Public-Safety/Arrest-Data-from-2010-to-2019/yru6-6re4
 https://data.lacity.org/Public-Safety/Crime-Data-from-2020-to-Present/2nrs-mtv8
 
 
-This is a node app that connects to a SQL Server database running in a container.
-
-You can run the container on a Docker engine via this command:
-
+You can run the SQL Server database container on a Docker engine via this command:
 
 ```
 docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=RMS0foobar" -p 1433:1433 -d dennisallard/ssms:version06-rms0
 ```
 
 BEGIN HISTORICAL NOTES
-I derived my above container starting with:
+
+I derived my above container starting with the following Microsoft image:
+
 ```
 docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=********" -p 1433:1433 -d mcr.microsoft.com/mssql/server:2022-latest
 ```
+
+WARNING: I suspect that Microsoft image has evolved and we may not be able to recreate my container from it anymore.
+
+That's OK since I pushed my derived container image to my Docker hub dennisallard/ssms as shown above.
+
+
 ALSO See:
 https://hub.docker.com/_/microsoft-mssql-server
 
@@ -65,7 +70,7 @@ You need to create a top level file
 
     .env
 
-Copy file .env-SAMPLE to .env and edit .env to set the SQL_PASSWORD (I indicated the password offlline from here).
+Copy file .env-SAMPLE to .env and edit .env to set the SQL_PASSWORD to RMS0foobar.
 
 Run the express app via:
 
@@ -77,7 +82,7 @@ Once the app is running you should be able to fetch from the api endpoint illust
 Example queries:
 
 ```
-http://localhost:3002/api/d
+http://localhost:3002/api/crimes/?dr=1970-01-01T20:06:04.061Z
 ```
 
     Returns a few columns from the record in the Crimes dataset having a given DR
@@ -87,6 +92,9 @@ http://localhost:3002/api/crimes/?location=PACIFIC%20COAST&geo=33.7905&geo=-118.
 ```
 
     Returns all records in the Crimes dataset having partial match with "PACIFIC COAST", within 0.5 Kilometers of the specified lat long, and within the date range.
+
+
+NOTE: I AM ABOUT TO CHANGE THE PARAMETER NAMES TO SPECIFICALLY LABEL EACH FIELD (lat, long, distance AND date1, date2)
 
 
 
