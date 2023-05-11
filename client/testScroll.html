@@ -1,4 +1,5 @@
 <!--
+  Example javascript code to test the API using rownum and size parameters
 -->
 
 <!DOCTYPE html>
@@ -17,11 +18,6 @@
   <input type="text" id="rownum" value="1" size=10>
   Number of rows to fetch:
   <input type="text" id="size" value="5" size=2>
-  then bump row
-  <select id="direction">
-    <option value="forward" selected>Forward</option>
-    <option value="backward">Backward</option>
-  </select>
   <br>
   <br>
   <button onclick="processInput();">Fetch rows</button>
@@ -39,11 +35,9 @@
  
 <script>
 
-// Get references to the dropdown menu and input fields
-const direction = document.querySelector('#direction');
+// Get references to the input fields
 const rownum = document.querySelector('#rownum');
 const size = document.querySelector('#size');
-
 
 function processInput() {
     console.log('DEBUG: processInput() ...')
@@ -86,13 +80,6 @@ function processInput() {
             ////$('#output').val(JSON.stringify(result.data, undefined, 2))
             ////$('#output').val(JSON.stringify(result))
             $('#output').val(JSON.stringify(result, undefined, 2))
-            
-            if ($('#direction').val() === 'forward') {
-                ////$('#rownum').val(result.rownum + result.size)
-                $('#rownum').val(parseInt($('#rownum').val()) + parseInt($('#size').val()))
-            } else {
-                $('#rownum').val(parseInt($('#rownum').val()) - parseInt($('#size').val()))
-            }    
           }
         })
         .catch(error => {
