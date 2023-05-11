@@ -1,4 +1,6 @@
-This is a demo node app, hereby dubbed rms0, that provides a simple express api to SELECT data from tables in an SQL Server database currently installed in a container.  The container image consists of a recent Ubuntu Linux with SQL Server pre-installed by Microsoft.  The tables are from datasets found here:
+This is a demo node app, hereby dubbed rms0, that provides a simple express API to SELECT data from tables in an SQL Server database.
+
+The database used so far is currently installed in a container.  The container image consists of a recent Ubuntu Linux with SQL Server pre-installed by Microsoft.  The tables are from datasets found here:
 
 
 Home page: https://data.lacity.org/browse?category=Public+Safety
@@ -18,7 +20,7 @@ You can run the SQL Server database container on a Docker engine via this comman
 docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=RMS0foobar" -p 1433:1433 -d dennisallard/ssms:version06-rms0
 ```
 
-BEGIN HISTORICAL NOTES
+***** BEGIN HISTORICAL NOTES *****
 
 I derived my above container starting with the following Microsoft image:
 
@@ -34,7 +36,8 @@ That's OK since I pushed my derived container image to my Docker hub dennisallar
 ALSO See:
 https://hub.docker.com/_/microsoft-mssql-server
 
-END HISTORICAL NOTES
+***** END HISTORICAL NOTES *****
+
 
 You need to have a Docker Engine running on your computer.  Windows 10/11 have a built-in Docker Engine that you start by running the Docker Desktop app.  (Wait about 20 seconds for it to kick in and then do commands such as  the above docker run command and things like docker images, docker ps, etc.
 
@@ -60,7 +63,7 @@ In the database RMS0 will you see three tables:
 
 That is the database this express app will be connecting to per settings in .env (see .env-SAMPLE)
 
-The current very preliminary version of this app accesses only the Crime data table.
+The current preliminary version of this app accesses only the Crime data table.
 
 Build the express app in the standard node way:
 
@@ -88,15 +91,10 @@ http://localhost:3002/api/crimes/?dr=1970-01-01T20:06:04.061Z
     Returns a few columns from the record in the Crimes dataset having a given DR
 
 ```
-http://localhost:3002/api/crimes/?location=PACIFIC%20COAST&geo=33.7905&geo=-118.2750&geo=0.5&daterange=2020-02-03&daterange=2020-02-06
+http://localhost:3002/api/crimes/?location=PACIFIC%20COAST&geo=[33.7905,-118.2750,0.5]&daterange=[2020-02-03,2020-02-06]
 ```
 
     Returns all records in the Crimes dataset having partial match with "PACIFIC COAST", within 0.5 Kilometers of the specified lat long, and within the date range.
-
-
-NOTE: I AM ABOUT TO CHANGE THE PARAMETER NAMES TO SPECIFICALLY LABEL EACH FIELD (lat, long, distance AND date1, date2)
-
-
 
 There are three HTML files you can use as file URLs to enter queries.  The URLs are of the form:
 
@@ -108,11 +106,39 @@ The  javascript code in each of these files serves as a simple example of how to
 
 They all provide an API input field for you to enter an endpoint string that begins with "crimes/?".
 
-Examples:
+For now api/crimes/ is the only endpoint.  It takes the following parameters:
 
-crimes/?location=PACIFIC COAST&daterange=2020-02-03&daterange=2020-02-06
+location=any string
+geo=[lat,long,distance]
+daterange=[<start date>, <end date>]
 
-crimes/?geo=34.0483016967773&geo=-118.26309967041&geo=0.05&daterange=2020-01-02&daterange=2020-01-02
+Examples that can be entered into input fields of the above HTML or in localhost URLs shown above.
+
+EXAMPLES:
+
+crimes/?location=PACIFIC COAST&daterange=[2020-02-03,2020-02-06]
+
+crimes/?geo=[34.0483016967773,-118.26309967041,0.05]&daterange=[2020-01-02,2020-01-02]
+
+
+There is one special URL  parameter:
+
+count -- this is a flag, it has no value, putting it in the URL causes the API to return a count of how many rows would be returned instead of the rows themselves. So this URL:
+
+crimes/?count&location=PACIFIC COAST&daterange=[2020-02-03,2020-02-06]
+
+returns a count of how many rows woule be retured from this URL:
+
+crimes/?location=PACIFIC COAST&daterange=[2020-02-03,2020-02-06]
+
+To provide for paginated and limited amounts of output two other special parameters are available:
+
+rownum=<starting row number>
+size=<number of rows to return>
+
+These parameters enable a client to scorll  forward or backward showing small numbers of rows at a time.
+
+
 
 testSimple.html does a simple fetch and pretty prints the returned JSON.
 

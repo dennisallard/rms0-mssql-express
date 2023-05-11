@@ -3,10 +3,56 @@ const sql = require('mssql')
 
 console.log('DEBUG: config = ' + JSON.stringify(config))
 
+// BEGIN Utility functions to eventually move to a separate file
+
 function isPositiveInteger(value) {
     return Number.isInteger(value) && Math.sign(value) === 1;
-  }
-  
+}
+
+function parseArrayOfNumbers(str) {
+    try {
+      const parsedArray = JSON.parse(str);
+      if (Array.isArray(parsedArray)) {
+        if (parsedArray.every(element => typeof element === 'number')) {
+            return parsedArray
+        }
+      }
+    } catch (error) {
+      // Parsing error or not a valid JSON
+      return false;
+    }
+    return false;
+}
+
+function parseArrayofDateStrings(x) {
+    // Example:
+    //
+    // parseArrayofDateStrings("  [ 2021-01-02  , 2022-01-02 ]  ") => ["2021-01-02","2022-01-02"]
+    //
+
+    //// x = '  [ 1-1-21, 2-1-21 ]  '
+    try {
+        xt = x.trim()
+        if (xt[0] == '[' && xt[xt.length-1] == ']') {
+            arrayOfDateString = xt.slice(1,-1).split(',')  //// [ ' 1-1-21', ' 2-1-21 ' ]
+            if (arrayOfDateString.length == 2) {
+                if (arrayOfDateString.every(x => !isNaN(Date.parse(x)))) {
+                    return arrayOfDateString
+                }
+            }
+        }
+    }
+    catch (error) {
+        console.log("daterange not not of form [ date, date ]")
+        return false
+    }
+    console.log("daterange not not of form [ date, date ]")
+    return false
+}
+ 
+// END Utility functions to eventually move to a separate file
+
+
 async function getCrimesStream(req, res){
     console.log('DEBUG: getCrimesStream()')
 
@@ -50,11 +96,12 @@ async function getCrimesStream(req, res){
                 whereClause += ' AND DR_NO = PARSE(\'' + req.query.dr + '\' AS TIME)'
             } else {
                 if (req.query.daterange) {
-                    const daterange = req.query.daterange
-                    console.log('req.query.daterange = ' + daterange)
-                    if (daterange.length !== 2) {
-                        console.log('ERROR: there must be 2 daterange args')
-                        throw ('ERROR: there must be 2 daterange args')
+                    const daterangeparm = req.query.daterange
+                    console.log('req.query.daterange = ' + daterangeparm)
+                    const daterange = parseArrayofDateStrings(daterangeparm)
+                    if (!daterange) {
+                        console.log('ERROR: daterange not not of form [ date, date ]')
+                        throw ('ERROR: daterange not not of form [ date, date ]')
                     }
                     whereClause += ' AND ( (Date_Rptd >= \'' + daterange[0] + '\' AND Date_Rptd <= \'' + daterange[1] + '\') OR ' +
                                           '(DATE_OCC >= \'' + daterange[0] + '\' AND DATE_OCC <= \'' + daterange[1] + '\') )'
@@ -66,15 +113,24 @@ async function getCrimesStream(req, res){
                         ' OR replace(CROSS_STREET,\' \',\'\') LIKE \'%' + req.query.location.replace(/\s+/g, '') + '%\' )'
                 }
                 if (req.query.geo) {
-                    const geo = req.query.geo
-                    console.log('req.query.geo = ' + geo)
-                    if (geo.length !== 3) {
-                        console.log('ERROR: there must be 3 geo args')
-                        throw ('geo args')
+                    const geoparm = req.query.geo
+                    console.log('req.query.geo = ' + geoparm)
+                    const geo = parseArrayOfNumbers(geoparm)
+                    if (!geo || geo.length !== 3) {
+                        console.log('ERROR: there must be 3 geo args, each a number')
+                        throw ('geo args not an array of 3 numbers')
                     }
-                    var lat = geo[0]
-                    var lon = geo[1]
-                    var distance = geo[2]
+                    const lat = geo[0]
+                    const lon = geo[1]
+                    const distance = geo[2]
+                    if (lon > 0) {
+                        console.log('ERROR: second geo are (LONG) must be a negative number')
+                        throw ('second geo are (LONG) must be a negative number')
+                    }
+                    if (distance < 0) {
+                        console.log('ERROR: third geo arg (Distance)) must be a positive number')
+                        throw ('third geo arg (Distance) must be a positive number')
+                    }
                     console.log('DEBUG: lat = ' + lat + ', lon = ' + lon + ', distance = ' + distance)
                     whereClause += ' AND ACOS(SIN(LAT)*SIN(' + lat + ')+COS(LAT)*COS(' + lat + ')*COS(' + lon + '-LON))*6371 < ' + distance
                 }
