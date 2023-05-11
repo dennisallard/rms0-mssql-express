@@ -94,13 +94,19 @@ async function getCrimesStream(req, res){
         var sqlstmt = 'SELECT ROW_NUMBER() OVER (ORDER BY DR_NO) row_num,' +
                              'DR_NO, Date_Rptd, DATE_OCC, LOCATION, AREA_NAME, Cross_Street, LAT, LON FROM Crime_Data_from_2020_to_Present Crimes ' +
                       'WHERE ' + whereClause
-
-        sqlstmt = 'SELECT' + (size ? ' TOP ' + size : '') + ' * FROM (' + sqlstmt + ') AS anon WHERE row_num >= ' + rownum + ' ORDER BY row_num'
+        sqlstmt = 'SELECT' + (size ? ' TOP ' + size : '') + ' * FROM (' + sqlstmt + ') AS anon1 WHERE row_num >= ' + rownum 
+        if (req.query.count !== undefined) {
+            // return count of rows in resultset rather than resultset itself
+            sqlstmt = 'SELECT COUNT(*) count FROM (' + sqlstmt + ') as anon2'
+        } else {
+            // return resultset ordered by row_num
+            sqlstmt = sqlstmt + ' ORDER BY row_num'
+        }
 
         console.log('DEBUG: sqlstmt = ' + sqlstmt)
 
         var request = new sql.Request();
-        request.stream = true; // You can set streaming differently for each request
+        request.stream = true; // You can set streaming differently for each request (we always stream)
 
         request.query(sqlstmt)
         var rowCounter = 0;
