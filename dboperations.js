@@ -35,7 +35,7 @@ function parseArrayofDateStrings(x) {
         xt = x.trim()
         if (xt[0] == '[' && xt[xt.length-1] == ']') {
             arrayOfDateString = xt.slice(1,-1).split(',')  //// [ ' 1-1-21', ' 2-1-21 ' ]
-            if (arrayOfDateString.length == 2) {
+            if (arrayOfDateString.length == 1 || arrayOfDateString.length == 2) {
                 if (arrayOfDateString.every(x => !isNaN(Date.parse(x)))) {
                     return arrayOfDateString
                 }
@@ -69,6 +69,14 @@ async function getCrimesStream(req, res){
         try {
             console.log("req.params = " + JSON.stringify(req.params,null,4))
             console.log("req.query = " + JSON.stringify(req.query,null,4))
+            
+            // check for invalid parameters
+            const params = ['dr', 'daterange', 'location', 'geo', 'rownum', 'size', 'count']
+            const invalidParams = Object.keys(req.query).filter(x => !params.includes(x))
+            if (invalidParams.length > 0) {
+                console.log('ERROR: invalid parameters: ' + invalidParams)
+                throw ('ERROR: invalid parameters: ' + invalidParams)
+            }
         
             var rownum = req.query.rownum || 1;      // optional starting row number, default to 1
             var size = req.query.size || null;       // optional number of rows to return
@@ -98,10 +106,14 @@ async function getCrimesStream(req, res){
                 if (req.query.daterange) {
                     const daterangeparm = req.query.daterange
                     console.log('req.query.daterange = ' + daterangeparm)
-                    const daterange = parseArrayofDateStrings(daterangeparm)
+                    var daterange = parseArrayofDateStrings(daterangeparm)
                     if (!daterange) {
-                        console.log('ERROR: daterange not not of form [ date, date ]')
+                        console.log('ERROR: daterange not not of form [ date ] or [ date, date ]')
                         throw ('ERROR: daterange not not of form [ date, date ]')
+                    }
+                    if (daterange.length == 1) {
+                        // if only one date is specified, then use it as both start and end date
+                        daterange = [ daterange[0], daterange[0] ]
                     }
                     whereClause += ' AND ( (Date_Rptd >= \'' + daterange[0] + '\' AND Date_Rptd <= \'' + daterange[1] + '\') OR ' +
                                           '(DATE_OCC >= \'' + daterange[0] + '\' AND DATE_OCC <= \'' + daterange[1] + '\') )'

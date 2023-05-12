@@ -1,4 +1,4 @@
-This is a demo node app, hereby dubbed rms0, that provides a simple express API to SELECT data from tables in an SQL Server database.
+This is a demo node app, dubbed rms0, that provides a simple express API to SELECT data from tables in an SQL Server database.
 
 The database used so far is currently installed in a container.  The container image consists of a recent Ubuntu Linux with SQL Server pre-installed by Microsoft.  The tables are from datasets found here:
 
@@ -91,10 +91,12 @@ http://localhost:3002/api/crimes/?dr=1970-01-01T20:06:04.061Z
     Returns a few columns from the record in the Crimes dataset having a given DR
 
 ```
-http://localhost:3002/api/crimes/?location=PACIFIC%20COAST&geo=[33.7905,-118.2750,0.5]&daterange=[2020-02-03,2020-02-06]
+http://localhost:3002/api/crimes/?location=PACIFIC COAST&geo=[33.7905, -118.2750, 0.5]&daterange=[2020-02-01, 2021-01-31]
 ```
 
     Returns all records in the Crimes dataset having partial match with "PACIFIC COAST", within 0.5 Kilometers of the specified lat long, and within the date range.
+
+If you specify just one date, the date range is for that one day.
 
 There are three HTML files you can use as file URLs to enter queries.  The URLs are of the form:
 
