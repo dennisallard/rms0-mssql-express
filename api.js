@@ -1,43 +1,56 @@
-const dboperations = require('./dboperations');
 
-var express = require('express');
-var bodyParser = require('body-parser')
-var cors = require('cors')
-var app = express()
-var router = express.Router()
+import express from 'express'
+//// import bodyParser from 'body-parser'  //dga- needed to parse JSON in POST body - so not needed for GET
+import cors from 'cors'  //dga- do we need this
 
-app.use(bodyParser.urlencoded({ extended: true}))
-app.use(bodyParser.json())
-app.use(cors())
-app.use('/api', router)
+import crimesRouter from './routes/crimes.js'
+import ccadRouter from './routes/ccad.js'
 
-router.use((req, res, next) => {
-    console.log('middleware executes here, e.g. to authenticate via JWT')
-    next()
-})
+import dotenv from 'dotenv'
+dotenv.config()  // loads .env file into process.env
 
-router.route('/crimes').get((req, res) => {
-    dboperations.getCrimesStream(req, res)
-})
+async function startApp() {
 
-router.route('*').get((req, res) => {
-    console.log('DEBUG: req.url = ' + req.url)
-    res.write('{ "error" : "Invalid URL, only endpoint supported by /api/ is: crimes/?[arg=...[&arg=...]...]" }')
-    res.end()
-})
+    const app = express()
 
-var apiport = process.env.API_PORT || 3000
-////app.listen(apiport)
-console.log('=================================================')
-try {
-    app.listen(apiport).on('error', (err) => {  // listen on the port
+    //// app.use(bodyParser.urlencoded({ extended: true}))
+    //// app.use(bodyParser.json())
+    app.use(cors())  //dga- do we need this?
+
+    //// Maybe for future use to authenticate via JWT or other means
+    ////app.use((req, res, next) => {
+    ////    console.log('middleware executes here, e.g. to authenticate via JWT')
+    ////    next()
+    ////})
+
+    // Mount the routers
+    app.use('/api/crimes', crimesRouter)
+    app.use('/api/ccad', ccadRouter)
+
+    app.route('*').get((req, res) => {
+        console.log('DEBUG: req.url = ' + req.url)
+        res.write('{ "error" : "Only endpoints supported are /api/crimes and almost /api/ccad" }')
+        res.end()
+    })
+
+    // Start the API server
+    var apiport = process.env.API_PORT || 3000
+    console.log('=================================================')
+    try {
+        app.listen(apiport).on('error', (err) => {  // listen on the port
+            console.log('ERROR: ' + err)
+            console.log('=================================================')
+            console.log('Exiting...')
+        })
+        console.log('RMS Express API is listening on port ' + apiport)
+    } catch (err) {
         console.log('ERROR: ' + err)
         console.log('=================================================')
         console.log('Exiting...')
-    })
-    console.log('RMS Express API is listening on port ' + apiport)
-} catch (err) {
-    console.log('ERROR: ' + err)
-    console.log('=================================================')
-    console.log('Exiting...')
+    }
 }
+
+startApp().catch((err) => {
+    console.error('Error starting the app: ' + err)
+    console.error('Exiting...')
+})

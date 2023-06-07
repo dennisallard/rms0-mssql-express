@@ -166,3 +166,19 @@ https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_stre
 
 Well written overview of fetch API:
 https://rapidapi.com/guides/fetch-api-async-await
+
+
+APPENDIX - EXAMPLE URLS (subject to revision to use Peter's API soon)
+
+file:///C:/Users/allar/OneDrive/Documents/data/lapd/projects/rms0-mssql-express/client/testSimple.html
+
+file:///C:/Users/allar/OneDrive/Documents/data/lapd/projects/rms0-mssql-express/client/testChunks.html
+
+file:///C:/Users/allar/OneDrive/Documents/data/lapd/projects/rms0-mssql-express/client/testScroll.html
+
+All of above can take following API inputs:
+
+crimes/?location=FIG&geo=[33.7905,-118.2750,50]&daterange=[ 2020-02-03, 2020-03-03 ]
+crimes/?count&daterange=[ 2010-02-03, 2020-03-03 ]
+crimes/?daterange=[ 2010-02-03, 2020-03-03 ]
+etc. (unadvisable to use testSimple.html for very large outputs such as the large date range ones above)
