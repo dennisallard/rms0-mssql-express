@@ -12,7 +12,7 @@ async function crimesGet(req, res) {
         console.log("req.query = " + JSON.stringify(req.query, null, 4))
 
         // check for invalid parameters
-        const params = ['dr', 'daterange', 'location', 'geo', 'rownum', 'size', 'count']
+        const params = ['dr', 'daterange', 'location', 'geo', 'rownum', 'numrows', 'count']
         const invalidParams = Object.keys(req.query).filter(key => !params.includes(key))
         if (invalidParams.length > 0) {
             console.log('ERROR: invalid parameters: ' + invalidParams)
@@ -20,7 +20,7 @@ async function crimesGet(req, res) {
         }
 
         var rownum = req.query.rownum || 1;      // optional starting row number, default to 1
-        var size = req.query.size || null;       // optional number of rows to return
+        var numrows = req.query.numrows || null;       // optional number of rows to return
 
         var whereClause = '1=1'  // below we add optional where clauses each starting with ' AND'
 
@@ -28,15 +28,15 @@ async function crimesGet(req, res) {
             throw ('ERROR: rownum must be a positive integer');
         }
 
-        if (size) {
-            // return size number of rows [ordered by DR_NO for now] starting at rownum
-            if (!isPositiveInteger(parseInt(size))) {
-                throw ('ERROR: size must be a positive integer');
+        if (numrows) {
+            // return numrows number of rows [ordered by DR_NO for now] starting at rownum
+            if (!isPositiveInteger(parseInt(numrows))) {
+                throw ('ERROR: numrows must be a positive integer');
             }
-            console.log('return ' + size + ' rows')
+            console.log('return ' + numrows + ' rows')
             console.log('starting at row: ' + rownum)
         } else {
-            // if size is not specified, then return all rows
+            // if numrows is not specified, then return all rows
             console.log('return all rows starting at row: ' + rownum)
         }
 
@@ -103,7 +103,7 @@ async function crimesGet(req, res) {
         var sqlstmt = 'SELECT ROW_NUMBER() OVER (ORDER BY DR_NO) row_num,' +
             'DR_NO, Date_Rptd, DATE_OCC, LOCATION, AREA_NAME, Cross_Street, LAT, LON FROM Crime_Data_from_2020_to_Present Crimes ' +
             'WHERE ' + whereClause
-        sqlstmt = 'SELECT' + (size ? ' TOP ' + size : '') + ' * FROM (' + sqlstmt + ') AS anon1 WHERE row_num >= ' + rownum
+        sqlstmt = 'SELECT' + (numrows ? ' TOP ' + numrows : '') + ' * FROM (' + sqlstmt + ') AS anon1 WHERE row_num >= ' + rownum
         if (req.query.count !== undefined) {
             // return count of rows in resultset rather than resultset itself
             sqlstmt = 'SELECT COUNT(*) count FROM (' + sqlstmt + ') as anon2'
@@ -134,10 +134,10 @@ async function crimesGet(req, res) {
             // console.log('DEBUG: recordset columns = ' + JSON.stringify(columns,null,4));
             console.log('DEBUG: number of columns in result set = ' + Object.keys(columns).length);
             res.setHeader('Content-Type', 'application/json');
-            if (!size) {
+            if (!numrows) {
                 res.write('{ "crimes": [');
             } else {
-                res.write('{ "rownum": ' + rownum + ', "size": ' + size + ', "crimes": [');
+                res.write('{ "rownum": ' + rownum + ', "numrows": ' + numrows + ', "crimes": [');
             }
         });
 

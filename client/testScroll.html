@@ -1,5 +1,5 @@
 <!--
-  Example javascript code to test the API using rownum and size parameters
+  Example javascript code to test the API using rownum and numrows parameters
 -->
 
 <!DOCTYPE html>
@@ -17,7 +17,7 @@
   Next row to fetch:
   <input type="text" id="rownum" value="1" size=10>
   Number of rows to fetch:
-  <input type="text" id="size" value="5" size=2>
+  <input type="text" id="numrows" value="5" size=2>
   <br>
   <br>
   <button onclick="processInput();">Fetch rows</button>
@@ -37,7 +37,7 @@
 
 // Get references to the input fields
 const rownum = document.querySelector('#rownum');
-const size = document.querySelector('#size');
+const numrows = document.querySelector('#numrows');
 
 function processInput() {
     console.log('DEBUG: processInput() ...')
@@ -59,7 +59,7 @@ function processInput() {
     const method = 'GET'
     console.log('inputarg = ' + inputarg)
     var url = "http://localhost:" + port + "/api/" + inputarg
-            + '&size=' + $('#size').val() + '&rownum=' + $('#rownum').val()
+            + '&numrows=' + $('#numrows').val() + '&rownum=' + $('#rownum').val()
     var result = "nada";
     console.log('DEBUG: JUST BEFORE fetch url = ' + url)
 

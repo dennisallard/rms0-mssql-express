@@ -1,10 +1,11 @@
 
 import express from 'express'
-//// import bodyParser from 'body-parser'  //dga- needed to parse JSON in POST body - so not needed for GET
-import cors from 'cors'  //dga- do we need this
+//// import bodyParser from 'body-parser'  //dga- needed for POST - not needed for GET
+import cors from 'cors'  //dga- do we need this?
 
 import crimesRouter from './routes/crimes.js'
-import ccadRouter from './routes/ccad.js'
+////import ccadRouter from './routes/ccad.js'
+import afdrRouter from './routes/afdr.js'
 
 import dotenv from 'dotenv'
 dotenv.config()  // loads .env file into process.env
@@ -13,8 +14,8 @@ async function startApp() {
 
     const app = express()
 
-    //// app.use(bodyParser.urlencoded({ extended: true}))
-    //// app.use(bodyParser.json())
+    //// app.use(bodyParser.urlencoded({ extended: true}))  //dga- needed for POST - not needed for GET
+    //// app.use(bodyParser.json())  //dga- needed for POST - not needed for GET
     app.use(cors())  //dga- do we need this?
 
     //// Maybe for future use to authenticate via JWT or other means
@@ -25,7 +26,8 @@ async function startApp() {
 
     // Mount the routers
     app.use('/api/crimes', crimesRouter)
-    app.use('/api/ccad', ccadRouter)
+    ////app.use('/api/ccad', ccadRouter)  //dga- not yet implemented
+    app.use('/api/afdr', afdrRouter)
 
     app.route('*').get((req, res) => {
         console.log('DEBUG: req.url = ' + req.url)
