@@ -111,9 +111,7 @@ In the database RMS0 will you see three tables:
 The crimes/ endpoint only accesses Crime_Data_from_2020_to_Present
 
 
-=====================================================================
-HOW TO INSTALL AND RUN THIS APP
-=====================================================================
+***** HOW TO INSTALL AND RUN THIS APP *****
 
 
 Build the express app in the standard node way:
@@ -135,10 +133,7 @@ Once the app is running you should be able to fetch from the api
 endpoints illustrated below.
 
 
-=====================================================================
-EXAMPLE API USAGE (URLs entered into a browser):
-=====================================================================
-
+***** EXAMPLE API USAGE (URLs entered into a browser) *****
 
 Here is an example call to the afdr/ endpoint that returns two rows of
 output:
@@ -203,9 +198,7 @@ without the count flag to see different pages of data.
 
 
 
-=====================================================================
-Legacy crimes (local container database) endpoint examples:
-=====================================================================
+***** Legacy crimes (local container database) endpoint examples *****
 
 http://localhost:3002/api/crimes/?dr=1970-01-01T20:06:04.061Z
 
@@ -276,9 +269,7 @@ All of them output some useful information in the browser's inspector console ou
 The javascript in the HTML files is pretty easy to understand and references are cited.
 
 
-=====================================================================
-REFERENCES
-=====================================================================
+***** REFERENCES *****
 
 
 https://learn.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver16
@@ -294,9 +285,7 @@ Well written overview of fetch API:
 https://rapidapi.com/guides/fetch-api-async-await
 
 
-=====================================================================
-APPENDIX - LEGACY EXAMPLE URLS
-=====================================================================
+***** APPENDIX - LEGACY EXAMPLE URLS *****
 
 inputs for the client forms:
 
