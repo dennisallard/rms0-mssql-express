@@ -56,7 +56,8 @@ const poolPromiseCrimes = new sql.ConnectionPool(dbConfigCrimes)
   })
   .catch((error) => {
     console.error('Error connecting to DBcrimes:', error);
-    process.exit(1);
+    console.error('Will ignore DBcrimes database and continue...');
+    //// process.exit(1);
   });
 
 
