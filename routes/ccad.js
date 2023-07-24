@@ -3,6 +3,7 @@ import { poolPromiseCCAD, sql } from '../db.js';
 
 const router = express.Router();
 
+// NOT YET IMPLEMENTED - The code below is boilerplate and WILL NOT WORK
 router.get('/', async (req, res) => {
   const { parm1, parm2, parm3 } = req.query;
 
