@@ -154,14 +154,14 @@ Here is an example URL using the count flag to return just the number
 of rows that would be returned (33 in this case, as of this writing):
 
 URL:
-localhost:3002/api/afdr/?location=count&"808 Francisco St, Los Angeles, Ca 90017"&centroiddistance=3.0&starttime=2020-01-04 00:00&endtime=2022-01-03 00:00
+localhost:3002/api/afdr/?count&location="808 Francisco St, Los Angeles, Ca 90017"&centroiddistance=3.0&starttime=2020-01-04 00:00&endtime=2022-01-03 00:00
 
 RAW OUTPUT:
 { "afdr": 33} 
 
 
-Here is the same URL without the count flag, with the raw output
-showing just the first three rows and last JSON object in the output:
+Here is the same URL without the count flag, with the raw output below
+showing just the first three and the last rows of the JSON output:
 
 URL:
 localhost:3002/api/afdr/?location="808 Francisco St, Los Angeles, Ca 90017"&centroiddistance=3.0&starttime=2020-01-04 00:00&endtime=2022-01-03 00:00
@@ -187,7 +187,7 @@ inspector console output.  The javascript in the HTML files is pretty
 easy to understand and references are cited.
 
 
-Here are a couple of example inputs (usable as the API inpute in any of the above).
+Here are a couple of example inputs (usable as the API input in any of the above).
 
 afdr/?count&location="808 Francisco St, Los Angeles, Ca 90017"&centroiddistance=4.0&starttime=2020-01-04 00:00&endtime=2022-01-03 00:00
 
