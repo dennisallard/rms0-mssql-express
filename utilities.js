@@ -1,4 +1,36 @@
 
+/*****
+
+Utility functions for validating URL parameters, mapping addresses to lat/long, etc.
+
+HOWTO import and call the functions here in a node repl:
+
+$ node
+Welcome to Node.js v18.15.0.
+Type ".help" for more information.
+>
+> {translateAddressToLatLon, isQuotedString, isPositiveInteger, parseArrayOfNumbers, parseArrayofDateStrings, parseDateString} = await import('./utilities.js')
+[Module: null prototype] {
+  isPositiveInteger: [Function: isPositiveInteger],
+  isQuotedString: [Function: isQuotedString],
+  parseArrayOfNumbers: [Function: parseArrayOfNumbers],
+  parseArrayofDateStrings: [Function: parseArrayofDateStrings],
+  parseDateString: [Function: parseDateString],
+  translateAddressToLatLon: [AsyncFunction: translateAddressToLatLon]
+}
+>
+> await translateAddressToLatLon("100 West 1st St, Los Angeles, CA 90012")
+DEBUG: translateAddressToLatLon(100 West 1st St, Los Angeles, CA 90012)
+DEBUG: lat = 34.0520016, lon = -118.2445562
+{ lat: 34.0520016, lon: -118.2445562 }
+>
+> isQuotedString('"this string starts and ends with double quotes"')
+true
+>
+>
+*****/
+
+
 import fetch from 'node-fetch';
 
 const dotenv= await import('dotenv')
@@ -30,6 +62,10 @@ export async function translateAddressToLatLon(address) {
 
 
 export function isQuotedString(value) {
+    // Check if value is a string and starting and ending with double quotes
+    // isQuotedString('"123 Rose Ave."') === true
+    // isQuotedString('123 Rose Ave.') === false
+
     if (typeof value === 'string') {
         const firstCharacter = value[0];
         const lastCharacter = value[value.length - 1];
@@ -41,10 +77,18 @@ export function isQuotedString(value) {
 }
 
 export function isPositiveInteger(value) {
+    // Check if value is a positive integer
+    // isPositiveInteger(5) === true
+    // isPositiveInteger(-5) === false
+    // isPositiveInteger(0) === false
+    // isPositiveInteger(5.5) === false
     return Number.isInteger(value) && Math.sign(value) === 1;
 }
 
 export function parseArrayOfNumbers(str) {
+    // Parse a string into an array of numbers
+    // parseArrayOfNumbers('[1,2,3]') === [1,2,3]
+
     try {
       const parsedArray = JSON.parse(str);
       if (Array.isArray(parsedArray)) {
@@ -60,6 +104,12 @@ export function parseArrayOfNumbers(str) {
 }
 
 export function parseArrayofDateStrings(x) {
+    // parse a string into an array of date strings
+    // parseArrayofDateStrings('[ 2023-07-01, 2023-07-04 ]') === [ '2023-07-01', '2023-07-04' ]
+    // parseArrayofDateStrings('[ 2023-98-99, 2023-07-04 ]')
+    // generates error:
+    // parseArrayofDateStrings: Daterange is not of form [ date, date ]
+
     try {
         const xt = x.trim()
         if (xt[0] == '[' && xt[xt.length-1] == ']') {
@@ -78,7 +128,14 @@ export function parseArrayofDateStrings(x) {
     console.log("parseArrayofDateStrings: Daterange is not of form [ date, date ]")
     return false
 }
+
 export function parseDateString(x) {
+    // dga- For the moment this accepts any date string parsable by Date.parse
+    // dga- GOAL (???) Restrict to data strings of form YYYY-MM-DD HH-MM via regex match
+    // verify that x is an ISO 8601 date string and return x
+    // parseDateString('2023-07-01') === '2023-07-01'
+    // parseDateString('July 26, 2023 12:18') === 'July 26, 2023 12:18'
+
     try {
         if (!isNaN(Date.parse(x))) {
             return x
